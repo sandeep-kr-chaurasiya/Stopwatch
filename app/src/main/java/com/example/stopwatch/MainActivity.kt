@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -16,6 +17,7 @@ class MainActivity : AppCompatActivity() {
     private var passedTime: Long = 0
     private val lapTimes = mutableListOf<String>()
     private var lapCount = 0
+    private var play =true
     private val handler = Handler(Looper.getMainLooper())
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,14 +48,25 @@ class MainActivity : AppCompatActivity() {
     private fun startChronometer() {
         startTime = SystemClock.elapsedRealtime() - passedTime
         handler.post(updateChronometer)
-        binding.start.text = "Stop"
+        binding.start.setIconResource(R.drawable.pause) // Change the icon to pause
         isRunning = true
+        if (!play){
+        binding.lap.visibility = View.VISIBLE
+            binding.reset.visibility = View.GONE
+        }else{
+            binding.lap.visibility = View.VISIBLE
+        }
+        play=true
     }
+
     private fun stopChronometer() {
         passedTime = SystemClock.elapsedRealtime() - startTime
         handler.removeCallbacks(updateChronometer)
-        binding.start.text = "Start"
+        binding.start.setIconResource(R.drawable.play) // Change the icon to play
         isRunning = false
+        play=false
+        binding.reset.visibility = View.VISIBLE
+        binding.lap.visibility = View.GONE
     }
     private val updateChronometer = object : Runnable {
         override fun run() {
@@ -72,27 +85,28 @@ class MainActivity : AppCompatActivity() {
         lapTimes.clear()
         lapCount = 0
         binding.lapDisplay.text = ""
+        binding.reset.visibility = View.GONE
+        binding.lap.visibility = View.GONE
     }
 
     private fun formatTimeWithMillis(timeInMillis: Long): String {
         val minutes = (timeInMillis / 1000) / 60
         val seconds = (timeInMillis / 1000) % 60
         val milliseconds = (timeInMillis % 1000) / 10
-        return String.format("%02d:%02d:%02d", minutes, seconds, milliseconds)
+        return String.format("%02d:%02d.%02d", minutes, seconds, milliseconds)
     }
 
-    private fun addLap() {
-        if (isRunning) {
-            lapCount++
-            val lapTime = SystemClock.elapsedRealtime() - startTime
-            val formattedTime = formatTimeWithMillis(lapTime)
-            lapTimes.add("Lap $lapCount: $formattedTime")
-            updateLapDisplay()
-        }
-    }
-
-    private fun updateLapDisplay() {
-        val lapsText = lapTimes.joinToString("\n")
-        binding.lapDisplay.text = lapsText
+private fun addLap() {
+    if (isRunning) {
+        lapCount++
+        val lapTime = SystemClock.elapsedRealtime() - startTime
+        val formattedTime = formatTimeWithMillis(lapTime)
+        lapTimes.add(0, "Lap $lapCount: $formattedTime")
+        updateLapDisplay()
     }
 }
+
+private fun updateLapDisplay() {
+    val lapsText = lapTimes.joinToString("\n")
+    binding.lapDisplay.text = lapsText
+} }
