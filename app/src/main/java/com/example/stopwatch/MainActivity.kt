@@ -77,7 +77,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
     private fun resetChronometer() {
         stopChronometer()
         passedTime = 0L
